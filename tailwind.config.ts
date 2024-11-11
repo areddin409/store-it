@@ -10,20 +10,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: "#FA7275", // Remove the DEFAULT level
-        "brand-100": "#EA6365",
+        brand: {
+          "100": "#EA6365",
+          DEFAULT: "#FA7275",
+        },
         red: "#FF7474",
         error: "#b80000",
         green: "#3DD9B3",
         blue: "#56B8FF",
         pink: "#EEA8FD",
         orange: "#F9AB72",
-        "light-100": "#333F4E",
-        "light-200": "#A3B2C7",
-        "light-300": "#F2F5F9",
-        "light-400": "#F2F4F8",
-        "dark-100": "#04050C",
-        "dark-200": "#131524",
+        light: {
+          "100": "#333F4E",
+          "200": "#A3B2C7",
+          "300": "#F2F5F9",
+          "400": "#F2F4F8",
+        },
+        dark: {
+          "100": "#04050C",
+          "200": "#131524",
+        },
       },
       fontFamily: {
         poppins: ["var(--font-poppins)"],
@@ -40,8 +46,12 @@ const config: Config = {
       },
       keyframes: {
         "caret-blink": {
-          "0%,70%,100%": { opacity: "1" },
-          "20%,50%": { opacity: "0" },
+          "0%,70%,100%": {
+            opacity: "1",
+          },
+          "20%,50%": {
+            opacity: "0",
+          },
         },
       },
       animation: {

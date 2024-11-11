@@ -3,7 +3,10 @@
   "settings": {
     "tailwindcss": {
       "config": "./tailwind.config.js",
-      "whitelist": ["text-brand", "text-brand-100"]
+      "classAttributes": ["class", "className"],
+      "callees": ["classnames"],
+      "whitelist": ["text-brand", "text-brand-100", "bg-brand"]
+
     }
   }
 }
