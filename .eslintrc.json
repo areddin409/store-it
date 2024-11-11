@@ -2,11 +2,29 @@
   "extends": ["next/core-web-vitals", "next/typescript", "standard", "plugin:tailwindcss/recommended", "prettier"],
   "settings": {
     "tailwindcss": {
-      "config": "./tailwind.config.js",
+      "config": "./tailwind.config.ts",
       "classAttributes": ["class", "className"],
       "callees": ["classnames"],
-      "whitelist": ["text-brand", "text-brand-100", "bg-brand"]
+      "whitelist": [
+        // Brand colors
+        "text-brand", "text-brand-100", "bg-brand",
 
+        // Light variations
+        "text-light-100", "text-light-200", "text-light-300", "text-light-400",
+        "bg-light-100", "bg-light-200", "bg-light-300", "bg-light-400",
+
+        // Dark variations
+        "text-dark-100", "text-dark-200",
+        "bg-dark-100", "bg-dark-200",
+
+        // Single colors
+        "text-red", "bg-red",
+        "text-error", "bg-error",
+        "text-green", "bg-green",
+        "text-blue", "bg-blue",
+        "text-pink", "bg-pink",
+        "text-orange", "bg-orange"
+      ]
     }
   }
 }
