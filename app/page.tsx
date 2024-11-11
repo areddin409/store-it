@@ -1,7 +1,7 @@
 export default function Home() {
   return (
     <div className={"flex-center h-screen"}>
-      <h1 className={"h1"}>StoreIt 123</h1>
+      <h1 className={"h1"}>StoreIt</h1>
     </div>
   );
 }
