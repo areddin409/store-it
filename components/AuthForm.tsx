@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createAccount } from "@/lib/actions/user.action";
+import OPTModal from "@/components/OPTModal";
 
 type FormType = "sign-in" | "sign-up";
 
@@ -155,7 +156,9 @@ const AuthForm = ({ type }: AuthFormProps) => {
         </form>
       </Form>
 
-      {/* OPT Verification */}
+      {accountId && (
+        <OPTModal email={form.getValues("email")} accountId={accountId} />
+      )}
     </>
   );
 };
