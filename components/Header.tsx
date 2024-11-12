@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 
 import Search from "@/components/Search";
 import FileUploader from "@/components/FileUploader";
+import { signOUtUser } from "@/lib/actions/user.action";
 
 const Header = () => {
   return (
@@ -11,7 +12,13 @@ const Header = () => {
       <Search />
       <div className={"header-wrapper"}>
         <FileUploader />
-        <form>
+        <form
+          action={async () => {
+            "use server";
+
+            await signOUtUser();
+          }}
+        >
           <Button type={"submit"} className={"sign-out-button"}>
             <Image
               src={"/assets/icons/logout.svg"}

@@ -3,9 +3,10 @@
 import { Query, ID } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
-import { parseStringify } from "@/lib/utils";
+import { bufferToBase64, parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { AVATAR_PLACEHOLDER_URL } from "@/constants";
+import { redirect } from "next/navigation";
 
 const getUserByEmail = async (email: string) => {
   const { databases } = await createAdminClient();
@@ -48,7 +49,10 @@ export const createAccount = async ({
   if (!accountId) throw new Error("Failed to send email OTP");
 
   if (!existingUser) {
-    const { databases } = await createAdminClient();
+    const { databases, avatars } = await createAdminClient();
+
+    const avatarBuffer = await avatars.getInitials();
+    const avatar = bufferToBase64(avatarBuffer);
 
     await databases.createDocument(
       appwriteConfig.databaseId,
@@ -57,7 +61,7 @@ export const createAccount = async ({
       {
         fullName,
         email,
-        avatar: AVATAR_PLACEHOLDER_URL,
+        avatar: avatar ?? AVATAR_PLACEHOLDER_URL,
         accountId,
       },
     );
@@ -105,4 +109,32 @@ export const getCurrentUser = async () => {
   if (user.total <= 0) return null;
 
   return parseStringify(user.documents[0]);
+};
+
+export const signOUtUser = async () => {
+  const { account } = await createSessionClient();
+  try {
+    await account.deleteSession("current");
+
+    (await cookies()).delete("appwrite-session");
+  } catch (e) {
+    handleError(e, "Failed to sign out user");
+  } finally {
+    redirect("/sign-in");
+  }
+};
+
+export const signInUser = async ({ email }: { email: string }) => {
+  try {
+    const existingUser = await getUserByEmail(email);
+
+    if (!existingUser) {
+      return parseStringify({ accountId: null, error: "User not found" });
+    }
+
+    await sendEmailOTP(email);
+    return parseStringify({ accountId: existingUser.accountId });
+  } catch (e) {
+    handleError(e, `Failed to sign in user ${email}`);
+  }
 };

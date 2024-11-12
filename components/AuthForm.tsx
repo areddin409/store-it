@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createAccount } from "@/lib/actions/user.action";
+import { createAccount, signInUser } from "@/lib/actions/user.action";
 import OPTModal from "@/components/OPTModal";
 
 type FormType = "sign-in" | "sign-up";
@@ -41,6 +41,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [accountId, setAccountId] = useState(null);
+  console.log("accountID:", accountId);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,10 +56,13 @@ const AuthForm = ({ type }: AuthFormProps) => {
     setErrorMessage("");
 
     try {
-      const user = await createAccount({
-        fullName: values.fullName || "",
-        email: values.email,
-      });
+      const user =
+        type === "sign-up"
+          ? await createAccount({
+              fullName: values.fullName || "",
+              email: values.email,
+            })
+          : await signInUser({ email: values.email });
 
       setAccountId(user.accountId);
     } catch {
@@ -150,7 +154,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
               href={type === "sign-in" ? "/sign-up" : "/sign-in"}
               className={"ml-1 font-medium text-brand"}
             >
-              {type === "sign-in" ? "Sign In" : "Sign Up"}
+              {type === "sign-in" ? "Sign Up" : "Sign In"}
             </Link>
           </div>
         </form>
