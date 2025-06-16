@@ -6,8 +6,6 @@ import Image from 'next/image';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
@@ -17,6 +15,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import FileUploader from '../file/FileUploader';
 import { Button } from '../ui/button';
+import { signOutUser } from '@/lib/actions/user.actions';
 
 interface Props {
   ownerId: string;
@@ -101,7 +100,7 @@ const MobileNav = ({ ownerId, accountId, fullName, email, avatar }: Props) => {
             <Button
               type="submit"
               className="mobile-sign-out-button"
-              onClick={() => {}}
+              onClick={async () => signOutUser()}
             >
               <Image
                 src="/assets/icons/logout.svg"

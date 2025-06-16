@@ -13,6 +13,7 @@
 import { Account, Avatars, Client, Databases, Storage } from 'node-appwrite';
 import { appwriteConfig } from '@/lib/appwrite/config';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 /**
  * Creates and configures an Appwrite client instance using the current user's session.
@@ -53,7 +54,7 @@ export const createSessionClient = async () => {
   const session = (await cookies()).get('appwrite_session');
 
   if (!session || !session.value) {
-    throw new Error('No session found');
+    redirect('/sign-in'); // Redirect to sign-in if no session is found
   }
 
   client.setSession(session.value);

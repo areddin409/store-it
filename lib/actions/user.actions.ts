@@ -6,6 +6,7 @@ import { appwriteConfig } from '../appwrite/config';
 import { parseStringify } from '../utils';
 import { cookies } from 'next/headers';
 import { avatarPlaceholderUrl } from '@/constants';
+import { redirect } from 'next/navigation';
 
 /**
  * User Authentication Server Actions
@@ -200,4 +201,44 @@ export const getCurrentUser = async () => {
   }
 
   return parseStringify(user.documents[0]);
+};
+
+/**
+ * Signs out the currently authenticated user
+ * This function:
+ * 1. Deletes the current session using Appwrite's account service
+ * 2. Removes the session cookie from the browser
+ * * @returns Redirects the user to the sign-in page after signing out
+ * @throws Will throw an error if the session deletion fails
+ *
+ */
+export const signOutUser = async () => {
+  const { account } = await createSessionClient();
+  try {
+    await account.deleteSession('current');
+
+    (await cookies()).delete('appwrite_session');
+  } catch (error) {
+    handleError(error, 'Failed to sign out user');
+  } finally {
+    redirect('/sign-in');
+  }
+};
+
+export const signInUser = async ({ email }: { email: string }) => {
+  try {
+    const existingUser = await getUserByEmail(email);
+
+    //User exists, send OTP
+    if (existingUser) {
+      await sendEmailOTP({ email });
+      return parseStringify({
+        accountId: existingUser.accountId,
+      });
+    }
+
+    return parseStringify({ accountId: null, error: 'User not found' });
+  } catch (error) {
+    handleError(error, 'Failed to sign in user');
+  }
 };
