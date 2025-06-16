@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 declare type FileType = 'document' | 'image' | 'video' | 'audio' | 'other';
+declare type DateFormat = 'short' | 'medium' | 'long';
 
 declare interface ActionType {
   label: string;
@@ -73,4 +74,11 @@ declare interface ShareInputProps {
   file: Models.Document;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: (email: string) => void;
+}
+
+declare interface FormattedDateTimeProps {
+  date: string;
+  format?: DateFormat;
+  className?: string;
+  showTooltip?: boolean;
 }
