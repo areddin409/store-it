@@ -13,19 +13,17 @@ import { Separator } from '../ui/separator';
 import { navItems } from '@/constants';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import FileUploader from '../file/FileUploader';
 import { Button } from '../ui/button';
-import { signOutUser } from '@/lib/actions/user.actions';
+import { getCurrentUser, signOutUser } from '@/lib/actions/user.actions';
+import FileUploader from '@/components/file/FileUploader';
 
-interface Props {
-  ownerId: string;
-  accountId: string;
-  fullName: string;
-  email: string;
-  avatar: string;
-}
-
-const MobileNav = ({ ownerId, accountId, fullName, email, avatar }: Props) => {
+const MobileNav = ({
+  fullName,
+  email,
+  avatar,
+  $id: ownerId,
+  accountId,
+}: MobileNavigationProps) => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -95,7 +93,7 @@ const MobileNav = ({ ownerId, accountId, fullName, email, avatar }: Props) => {
           <Separator className="my-5 bg-light-200/20" />
 
           <div className="flex flex-col justify-between gap-5 pb-5">
-            <FileUploader />
+            <FileUploader ownerId={ownerId} accountId={accountId} />
 
             <Button
               type="submit"

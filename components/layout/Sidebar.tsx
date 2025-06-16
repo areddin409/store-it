@@ -7,13 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
-interface Props {
-  fullName: string;
-  email: string;
-  avatar: string;
-}
-
-const Sidebar = ({ fullName, email, avatar }: Props) => {
+const Sidebar = ({ fullName, email, avatar }: SidebarProps) => {
   const pathname = usePathname();
   return (
     <aside className="sidebar">
