@@ -1,5 +1,10 @@
 'use client';
 
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { Models } from 'node-appwrite';
+
 import {
   Dialog,
   DialogContent,
@@ -7,22 +12,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { Models } from 'node-appwrite';
-import { actionsDropdownItems } from '@/constants';
-import Link from 'next/link';
-import { constructDownloadUrl } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+
 import {
   deleteFile,
   renameFile,
   updateFileUsers,
 } from '@/lib/actions/file.actions';
-import { usePathname } from 'next/navigation';
-import { FileDetails, ShareInput } from './ActionsModalContent';
+
 import CustomDropdownMenu from '../CustomDropdownMenu';
+import { FileDetails, ShareInput } from './ActionsModalContent';
 
 const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,7 +60,6 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    // Don't set dropdown state here, let the effect handle it
   };
 
   const handleAction = async () => {
@@ -93,6 +92,13 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
       console.error('Action failed:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAction();
     }
   };
 
@@ -129,6 +135,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           )}
           {value === 'details' && <FileDetails file={file} />}
