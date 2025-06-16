@@ -11,12 +11,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Separator } from './ui/separator';
+import { Separator } from '../ui/separator';
 import { navItems } from '@/constants';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import FileUploader from './FileUploader';
-import { Button } from './ui/button';
+import FileUploader from '../file/FileUploader';
+import { Button } from '../ui/button';
 
 interface Props {
   ownerId: string;

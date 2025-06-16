@@ -1,8 +1,8 @@
 import React from 'react';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import Image from 'next/image';
-import Search from './Search';
-import FileUploader from './FileUploader';
+import Search from '../search/Search';
+import FileUploader from '../file/FileUploader';
 
 const Header = () => {
   return (
