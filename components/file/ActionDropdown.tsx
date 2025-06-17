@@ -23,6 +23,7 @@ import {
 
 import CustomDropdownMenu from '../CustomDropdownMenu';
 import { FileDetails, ShareInput } from './ActionsModalContent';
+import { toast } from 'sonner';
 
 const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,12 +63,55 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
     setIsModalOpen(false);
   };
 
+  // Helper function to handle error responses
+  const handleErrorResponse = (result: any) => {
+    if (
+      !result ||
+      typeof result !== 'object' ||
+      !('status' in result) ||
+      result.status !== 'error'
+    ) {
+      return false;
+    }
+
+    // Error message mapping
+    const errorMessages = {
+      'Only the file owner can delete this file': `You don't have permission to delete this file. Only the owner can delete files.`,
+      'Only the file owner can rename this file': `You don't have permission to rename this file. Only the owner can rename files.`,
+      'Only the file owner can update sharing permissions': `You don't have permission to share this file. Only the owner can modify sharing settings.`,
+    };
+
+    // Get appropriate error message or use default
+    const errorMessage =
+      errorMessages[result.message as keyof typeof errorMessages] ||
+      result.message ||
+      `Failed to ${action?.value} file`;
+
+    toast.error(errorMessage);
+    return true;
+  };
+
+  // Helper function to show success messages
+  const showSuccessMessage = (actionType: string) => {
+    const successMessages = {
+      rename: `File renamed to "${name}" successfully`,
+      share: `File shared successfully`,
+      delete: `File "${file.name}" deleted successfully`,
+      default: 'Action completed successfully',
+    };
+
+    toast.success(
+      successMessages[actionType as keyof typeof successMessages] ||
+        successMessages.default
+    );
+  };
+
   const handleAction = async () => {
     if (!action) return;
     setIsLoading(true);
-    let success = false;
 
     try {
+      // Map of action functions
       const actions = {
         rename: () =>
           renameFile({
@@ -85,11 +129,24 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
           }),
       };
 
-      success = await actions[action.value as keyof typeof actions]();
+      // Execute the selected action
+      const result = await actions[action.value as keyof typeof actions]();
 
-      if (success) closeModal();
+      // Handle error response if present
+      if (handleErrorResponse(result)) {
+        setIsLoading(false);
+        closeModal();
+        return;
+      }
+
+      // Handle success
+      if (result) {
+        showSuccessMessage(action.value);
+        closeModal();
+      }
     } catch (error) {
       console.error('Action failed:', error);
+      toast.error(`Failed to ${action.value} file. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -101,21 +158,29 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
       handleAction();
     }
   };
-
   const handleRemoveUser = async (email: string) => {
     const updatedEmails = emails.filter(e => e !== email);
 
     try {
-      const success = await updateFileUsers({
+      const result = await updateFileUsers({
         fileId: file.$id,
         emails: updatedEmails,
         path,
       });
 
-      if (success) setEmails(updatedEmails);
-      closeModal();
+      // Use the same error handling helper function
+      if (handleErrorResponse(result)) {
+        return;
+      }
+
+      if (result) {
+        setEmails(updatedEmails);
+        toast.success(`User ${email} removed successfully`);
+        closeModal();
+      }
     } catch (error) {
       console.error('Failed to remove user:', error);
+      toast.error(`Failed to remove user. Please try again.`);
     }
   };
 
@@ -144,6 +209,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
               file={file}
               onInputChange={setEmails}
               onRemove={handleRemoveUser}
+              onKeyDown={handleKeyDown}
             />
           )}
           {value === 'delete' && (

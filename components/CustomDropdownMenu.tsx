@@ -29,7 +29,7 @@ const CustomDropdownMenu = ({
 }: Props) => {
   return (
     <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-      <DropdownMenuTrigger className="shad-no-focus">
+      <DropdownMenuTrigger className="shad-no-focus hover:bg-light-100/10 rounded-xl p-1 transition-colors duration-200 ease-in-out">
         <Image src="/assets/icons/dots.svg" alt="dots" width={34} height={34} />
       </DropdownMenuTrigger>
       <DropdownMenuContent>

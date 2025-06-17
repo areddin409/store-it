@@ -12,7 +12,11 @@ const ImageThumbnail = ({ file }: { file: Models.Document }) => (
     <Thumbnail type={file.type} extension={file.extension} url={file.url} />
     <div className="flex flex-col">
       <p className="subtitle-2 mb-1">{file.name}</p>
-      <FormattedDateTime date={file.$createdAt} className="caption" />
+      <FormattedDateTime
+        date={file.$createdAt}
+        className="caption"
+        format="long"
+      />
     </div>
   </div>
 );
@@ -42,9 +46,15 @@ interface Props {
   file: Models.Document;
   onInputChange: React.Dispatch<React.SetStateAction<string[]>>;
   onRemove: (email: string) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-export const ShareInput = ({ file, onInputChange, onRemove }: Props) => {
+export const ShareInput = ({
+  file,
+  onInputChange,
+  onRemove,
+  onKeyDown,
+}: Props) => {
   return (
     <>
       <ImageThumbnail file={file} />
@@ -58,6 +68,7 @@ export const ShareInput = ({ file, onInputChange, onRemove }: Props) => {
           placeholder="Enter email address"
           onChange={e => onInputChange(e.target.value.trim().split(','))}
           className="share-input-field"
+          onKeyDown={onKeyDown}
         />
         <div className="pt-4">
           <div className="flex justify-between">

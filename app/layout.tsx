@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.variable} antialiased`}>
         {children}
-        <Toaster richColors />
+        <Toaster richColors toastOptions={{}} />
       </body>
     </html>
   );

@@ -21,6 +21,66 @@ const handleError = (error: unknown, message: string) => {
 };
 
 /**
+ * Verifies the current user is the owner of a file
+ *
+ * @param fileId - The ID of the file to check ownership for
+ * @param actionType - The type of action being performed (for error message)
+ * @returns An object with { isOwner, currentUser, fileDoc, errorResponse }
+ */
+const verifyFileOwnership = async (fileId: string, actionType: string) => {
+  const { databases } = await createAdminClient();
+
+  // Get the current user
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return {
+      isOwner: false,
+      currentUser: null,
+      fileDoc: null,
+      errorResponse: parseStringify({
+        status: 'error',
+        message: 'User not authenticated',
+      }),
+    };
+  }
+
+  // Fetch the file to check ownership
+  try {
+    const fileDoc = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId
+    );
+
+    // Verify the current user is the owner of the file
+    const isOwner = fileDoc.owner.$id === currentUser.$id;
+
+    return {
+      isOwner,
+      currentUser,
+      fileDoc,
+      errorResponse: isOwner
+        ? null
+        : parseStringify({
+            status: 'error',
+            message: `Only the file owner can ${actionType} this file`,
+          }),
+    };
+  } catch (error) {
+    handleError(
+      error,
+      `Failed to verify ownership for ${actionType} operation`
+    );
+    return {
+      isOwner: false,
+      currentUser: null,
+      fileDoc: null,
+      errorResponse: null,
+    };
+  }
+};
+
+/**
  * Uploads a file to the Appwrite storage bucket and creates a document in the database
  *
  * This function handles the complete file upload process:
@@ -172,11 +232,14 @@ export const getFiles = async ({
 /**
  * Renames a file in the database
  *
+ * This function checks if the current user is the owner of the file before allowing
+ * the rename operation to proceed. Only file owners can rename files.
+ *
  * @param fileId - The ID of the file document to rename
  * @param name - The new name provided by the user
  * @param extension - The original file extension
  * @param path - The path to revalidate after renaming
- * @returns The updated file document or undefined if operation fails
+ * @returns The updated file document, error status object, or undefined if operation fails
  */
 export const renameFile = async ({
   fileId,
@@ -187,6 +250,15 @@ export const renameFile = async ({
   const { databases } = await createAdminClient();
 
   try {
+    // Verify ownership
+    const { isOwner, errorResponse } = await verifyFileOwnership(
+      fileId,
+      'rename'
+    );
+
+    // Return error if not owner
+    if (!isOwner) return errorResponse;
+
     // Check if the name already contains the extension
     const hasExtension = name
       .toLowerCase()
@@ -214,13 +286,13 @@ export const renameFile = async ({
 /**
  * Updates the list of users who have access to a shared file
  *
- * This server action modifies the 'users' field of a file document to grant
- * or revoke access to specific email addresses.
+ * This function checks if the current user is the owner of the file before allowing
+ * the sharing operation to proceed. Only file owners can modify sharing permissions.
  *
  * @param fileId - The ID of the file document to update
  * @param emails - Array of email addresses that should have access to the file
  * @param path - The path to revalidate after updating sharing permissions
- * @returns The updated file document or undefined if operation fails
+ * @returns The updated file document, error status object, or undefined if operation fails
  *
  * @throws Will throw an error if updating the file document fails
  */
@@ -230,7 +302,17 @@ export const updateFileUsers = async ({
   path,
 }: UpdateFileUsersProps) => {
   const { databases } = await createAdminClient();
+
   try {
+    // Verify ownership
+    const { isOwner, errorResponse } = await verifyFileOwnership(
+      fileId,
+      'update sharing permissions for'
+    );
+
+    // Return error if not owner
+    if (!isOwner) return errorResponse;
+
     const updatedFile = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
@@ -251,15 +333,16 @@ export const updateFileUsers = async ({
  * Deletes a file from both the Appwrite storage bucket and the database
  *
  * This server action performs a two-step deletion process:
- * 1. Removes the file document from the database
- * 2. Deletes the actual file from the Appwrite storage bucket
+ * 1. Verifies the current user is the owner of the file
+ * 2. Removes the file document from the database
+ * 3. Deletes the actual file from the Appwrite storage bucket
  *
  * @param fileId - The ID of the file document to delete
  * @param bucketFileId - The ID of the file in the Appwrite storage bucket
  * @param path - The path to revalidate after deletion
  * @returns A success status object or undefined if operation fails
  *
- * @throws Will throw an error if either the document or file deletion fails
+ * @throws Will throw an error if the user is not the owner or if deletion fails
  */
 export const deleteFile = async ({
   fileId,
@@ -269,6 +352,16 @@ export const deleteFile = async ({
   const { databases, storage } = await createAdminClient();
 
   try {
+    // Verify ownership
+    const { isOwner, errorResponse } = await verifyFileOwnership(
+      fileId,
+      'delete'
+    );
+
+    // Return error if not owner
+    if (!isOwner) return errorResponse;
+
+    // Proceed with deletion from DB after verifying ownership
     const deletedFile = await databases.deleteDocument(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
@@ -276,13 +369,14 @@ export const deleteFile = async ({
     );
 
     if (deletedFile) {
+      // Delete the file from the storage bucket
       await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
     }
 
     revalidatePath(path);
     return parseStringify({ status: 'success' });
   } catch (error) {
-    handleError(error, 'Failed to rename file');
+    handleError(error, 'Failed to delete file');
   }
 };
 
