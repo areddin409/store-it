@@ -179,9 +179,11 @@ const createQueries = (
   if (sort) {
     const [sortBy, orderBy] = sort.split('-');
 
-    queries.push(
-      orderBy === 'asc' ? Query.orderAsc(sortBy) : Query.orderDesc(sortBy)
-    );
+    if (sortBy && orderBy) {
+      queries.push(
+        orderBy === 'asc' ? Query.orderAsc(sortBy) : Query.orderDesc(sortBy)
+      );
+    }
   }
 
   return queries;
@@ -205,7 +207,7 @@ const createQueries = (
 export const getFiles = async ({
   types = [],
   searchText = '',
-  sort = '$createdAt-desc',
+  sort,
   limit,
 }: GetFilesProps) => {
   const { databases } = await createAdminClient();
@@ -215,7 +217,16 @@ export const getFiles = async ({
 
     if (!currentUser) throw new Error('User not found');
 
-    const queries = createQueries(currentUser, types, searchText, sort, limit);
+    // Ensure sort has a default value if it's undefined or empty
+    const sortValue = sort || '$createdAt-desc';
+
+    const queries = createQueries(
+      currentUser,
+      types,
+      searchText,
+      sortValue,
+      limit
+    );
 
     const files = await databases.listDocuments(
       appwriteConfig.databaseId,
